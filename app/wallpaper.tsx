@@ -1,15 +1,55 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { View, Image, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import {
+  View,
+  Image,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  SafeAreaView,
+  Platform,
+  Alert,
+} from 'react-native';
+import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 
 export default function WallpaperScreen() {
   const { image, description } = useLocalSearchParams();
   const router = useRouter();
 
-  // Share image function
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    checkIfFavorite();
+  }, [image]);
+
+  const checkIfFavorite = async () => {
+    const storedFavorites = await AsyncStorage.getItem('favorites');
+    const favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
+    const exists = favorites.some((fav: any) => fav.image === image);
+    setIsFavorite(exists);
+  };
+
+  const toggleFavorite = async () => {
+    const storedFavorites = await AsyncStorage.getItem('favorites');
+    let favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
+
+    if (isFavorite) {
+      favorites = favorites.filter((fav: any) => fav.image !== image);
+      setIsFavorite(false);
+    } else {
+      favorites.push({ image, description });
+      setIsFavorite(true);
+    }
+
+    await AsyncStorage.setItem('favorites', JSON.stringify(favorites));
+  };
+
   const shareImage = async () => {
     try {
       const fileUri = FileSystem.cacheDirectory + 'shared-wallpaper.jpg';
@@ -20,40 +60,68 @@ export default function WallpaperScreen() {
     }
   };
 
+  const downloadImage = async () => {
+    try {
+      const fileUri = FileSystem.documentDirectory + 'downloaded-wallpaper.jpg';
+      const { uri } = await FileSystem.downloadAsync(image as string, fileUri);
+      const permission = await MediaLibrary.requestPermissionsAsync();
+
+      if (permission.granted) {
+        await MediaLibrary.saveToLibraryAsync(uri);
+        Alert.alert('Downloaded', 'Image has been saved to your gallery!');
+      } else {
+        Alert.alert('Permission denied', 'Cannot save without gallery access.');
+      }
+    } catch (error) {
+      Alert.alert('Download failed', 'Something went wrong while downloading the image.');
+    }
+  };
+
   return (
     <LinearGradient colors={['#0f2027', '#203a43', '#2c5364']} style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={28} color="white" />
-      </TouchableOpacity>
-
-      {/* Wallpaper Title */}
-      <Text style={styles.title}>{description || 'Wallpaper Preview'}</Text>
-
-      {/* Image Display */}
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: image as string }} style={styles.image} />
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.iconButton} onPress={shareImage}>
-          <Feather name="share-2" size={22} color="white" />
-          <Text style={styles.iconText}>Share</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color="white" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.setButton}>
-          <Ionicons name="color-wand-outline" size={26} color="white" />
-          <Text style={styles.iconText}>Set</Text>
-        </TouchableOpacity>
+        <Text style={styles.title}>{description || 'Wallpaper Preview'}</Text>
 
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="heart-outline" size={22} color="white" />
-          <Text style={styles.iconText}>Favorite</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: image as string }} style={styles.image} />
+        </View>
+
+        <View style={styles.buttonContainer}>
+          {/* Share Button */}
+          <TouchableOpacity style={styles.iconButton} onPress={shareImage}>
+            <Feather name="share-2" size={22} color="white" />
+            <Text style={styles.iconText}>Share</Text>
+          </TouchableOpacity>
+
+          {/* Download Button */}
+          <TouchableOpacity style={styles.iconButton} onPress={downloadImage}>
+            <MaterialIcons name="file-download" size={24} color="white" />
+            <Text style={styles.iconText}>Download</Text>
+          </TouchableOpacity>
+
+          {/* Set Placeholder */}
+          <TouchableOpacity style={styles.setButton} onPress={() => Alert.alert('Set Wallpaper', 'This feature will be implemented soon!')}>
+            <Ionicons name="color-wand-outline" size={26} color="white" />
+            <Text style={styles.iconText}>Set</Text>
+          </TouchableOpacity>
+
+          {/* Favorite Toggle */}
+          <TouchableOpacity style={styles.iconButton} onPress={toggleFavorite}>
+            <Ionicons
+              name={isFavorite ? 'heart' : 'heart-outline'}
+              size={22}
+              color={isFavorite ? 'red' : 'white'}
+            />
+            <Text style={styles.iconText}>Favorite</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
@@ -61,13 +129,17 @@ export default function WallpaperScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
+  },
+  safeArea: {
+    flex: 1,
     paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 60 : 20,
+    paddingBottom: 100,
     alignItems: 'center',
   },
   backButton: {
     position: 'absolute',
-    top: 50,
+    top: Platform.OS === 'android' ? 50 : 20,
     left: 20,
     zIndex: 1,
   },
@@ -75,20 +147,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#fff',
     fontWeight: '600',
-    marginBottom: 20,
+    marginBottom: 16,
+    marginTop: 20,
     textAlign: 'center',
   },
   imageContainer: {
     flex: 1,
     width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 20,
   },
   image: {
     width: '100%',
-    height: '90%',
-    borderRadius: 20,
+    height: '100%',
     resizeMode: 'cover',
+    borderRadius: 20,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -98,7 +172,8 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 30,
-    marginBottom: 20,
+    flexWrap: 'wrap',
+    gap: 10,
   },
   iconButton: {
     alignItems: 'center',

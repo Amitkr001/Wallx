@@ -1,7 +1,8 @@
 import { Tabs } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { View } from 'react-native';
+import { View, StyleSheet, Text, Platform } from 'react-native';
 
 export default function Layout() {
   return (
@@ -14,25 +15,19 @@ export default function Layout() {
             borderTopWidth: 0,
             height: 80,
             position: 'absolute',
-            justifyContent: 'center', // center the tab bar content vertically
-            alignItems: 'center',
           },
           tabBarActiveTintColor: '#fff',
-          tabBarInactiveTintColor: '#ccc',
+          tabBarInactiveTintColor: '#ffffff80',
           tabBarBackground: () => (
             <LinearGradient
-              colors={['#0f2027', '#203a43', '#2c5364']} // match Home screen
+              colors={['rgba(15, 32, 39, 0.98)', 'rgba(32, 58, 67, 0.98)', 'rgba(44, 83, 100, 0.98)']}
               style={{ flex: 1 }}
             />
           ),
           tabBarItemStyle: {
-            marginTop: 10,
             alignItems: 'center',
             justifyContent: 'center',
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            paddingBottom: 2,
+            marginTop: 15,
           },
         }}
       >
@@ -40,8 +35,11 @@ export default function Layout() {
           name="index"
           options={{
             title: 'Home',
-            tabBarIcon: ({ color }) => (
-              <FontAwesome name="home" size={22} color={color} />
+            tabBarIcon: ({ color, focused }) => (
+              <View style={styles.iconContainer}>
+                <FontAwesome name="home" size={focused ? 26 : 22} color={color} />
+                {focused && <View style={styles.underline} />}
+              </View>
             ),
           }}
         />
@@ -49,17 +47,42 @@ export default function Layout() {
           name="category"
           options={{
             title: 'Category',
-            tabBarIcon: ({ color }) => (
-              <FontAwesome name="th-large" size={22} color={color} />
+            tabBarIcon: ({ color, focused }) => (
+              <View style={styles.iconContainer}>
+                <FontAwesome name="th-large" size={focused ? 25 : 21} color={color} />
+                {focused && <View style={styles.underline} />}
+              </View>
             ),
           }}
         />
+
+        {/* CENTER AI BUTTON */}
+        <Tabs.Screen
+          name="ai"
+          options={{
+            title: '',
+            tabBarIcon: ({ color, focused }) => (
+              <View style={styles.aiButton}>
+                <MaterialCommunityIcons
+                  name="robot"
+                  size={32}
+                  color="#fff"
+                />
+              </View>
+            ),
+            tabBarLabel: () => null,
+          }}
+        />
+
         <Tabs.Screen
           name="favorites"
           options={{
             title: 'Favorites',
-            tabBarIcon: ({ color }) => (
-              <FontAwesome name="heart" size={22} color={color} />
+            tabBarIcon: ({ color, focused }) => (
+              <View style={styles.iconContainer}>
+                <FontAwesome name="heart" size={focused ? 26 : 22} color={color} />
+                {focused && <View style={styles.underline} />}
+              </View>
             ),
           }}
         />
@@ -67,16 +90,48 @@ export default function Layout() {
           name="settings"
           options={{
             title: 'Settings',
-            tabBarIcon: ({ color }) => (
-              <FontAwesome name="cog" size={22} color={color} />
+            tabBarIcon: ({ color, focused }) => (
+              <View style={styles.iconContainer}>
+                <FontAwesome name="cog" size={focused ? 25 : 21} color={color} />
+                {focused && <View style={styles.underline} />}
+              </View>
             ),
           }}
         />
 
         {/* Hidden Screens */}
-        <Tabs.Screen name="login" options={{ href: null }} />
+        {/* <Tabs.Screen name="login" options={{ href: null }} /> */}
         <Tabs.Screen name="wallpaper" options={{ href: null }} />
       </Tabs>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 6,
+  },
+  underline: {
+    marginTop: 4,
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#ffffff',
+  },
+  aiButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#00C6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Platform.OS === 'android' ? 30 : 35,
+    elevation: 6,
+    shadowColor: '#00C6FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+  },
+});

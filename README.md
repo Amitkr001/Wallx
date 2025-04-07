@@ -1,50 +1,152 @@
-# Welcome to your Expo app 👋
+# 🎨 Wallx - Your Ultimate Wallpaper App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+<div align="center">
+  <img src="assets/images/adaptive-icon.png" alt="Wallx Logo" width="200"/>
+  
+  [![Expo](https://img.shields.io/badge/Expo-000000?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
+  [![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev)
+  [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+</div>
 
-## Get started
+## 🌟 Features
 
-1. Install dependencies
+- 🖼️ **Beautiful Wallpapers**: Access a vast collection of high-quality wallpapers
+- 🔍 **Smart Search**: Find wallpapers by category, color, or theme
+- 🤖 **AI-Powered**: Generate custom wallpapers using AI
+- 💾 **Offline Support**: Save your favorite wallpapers for offline use
+- 🔒 **Secure Authentication**: Firebase-powered user authentication
+- 🌙 **Dark Mode**: Beautiful dark theme for comfortable viewing
+- 📱 **Cross-Platform**: Works on both iOS and Android
 
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- npm or yarn
+- Expo CLI
+- Android Studio (for Android development)
+- Xcode (for iOS development, macOS only)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/wallx.git
+   cd wallx
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-2. Start the app
+3. **Set up Firebase**
+   - Create a Firebase project
+   - Add your Firebase configuration to `lib/firebaseConfig.ts`
+   - Enable Authentication and Firestore
 
+4. **Start the development server**
    ```bash
-    npx expo start
+   npm start
+   # or
+   yarn start
    ```
 
-In the output, you'll find options to open the app in a
+## 📱 Running the App
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### Development Build
 ```bash
-npm run reset-project
+# For Android
+npm run android
+
+# For iOS
+npm run ios
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Production Build
+```bash
+# For Android
+expo build:android
 
-## Learn more
+# For iOS
+expo build:ios
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🛠️ Tech Stack
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **Frontend**: React Native, Expo
+- **Backend**: Firebase (Authentication, Firestore)
+- **State Management**: React Context
+- **Routing**: Expo Router
+- **UI Components**: 
+  - Expo Linear Gradient
+  - React Native Vector Icons
+  - Expo Blur
+  - React Native Reanimated
 
-## Join the community
+## 📁 Project Structure
 
-Join our community of developers creating universal apps.
+```
+wallx/
+├── app/                 # Main application screens
+├── assets/             # Images, fonts, and other static assets
+├── components/         # Reusable UI components
+├── context/            # React Context providers
+├── lib/                # Utility functions and configurations
+├── services/           # API and service integrations
+└── types/              # TypeScript type definitions
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🔐 Authentication Flow
+
+1. User registration/login
+2. Email verification
+3. Profile management
+4. Secure session handling
+
+## 🎨 UI/UX Features
+
+- Smooth animations and transitions
+- Responsive design for all screen sizes
+- Intuitive navigation
+- Beautiful gradients and blur effects
+- Custom loading states
+
+## 📦 Dependencies
+
+- [Expo](https://expo.dev) - Development platform
+- [Firebase](https://firebase.google.com) - Backend services
+- [React Native](https://reactnative.dev) - UI framework
+- [TypeScript](https://www.typescriptlang.org) - Type safety
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Expo Team](https://expo.dev) for the amazing development platform
+- [Firebase Team](https://firebase.google.com) for the robust backend services
+- [React Native Community](https://reactnative.dev) for the incredible framework
+
+## 📞 Support
+
+For support, email support@wallx.app or join our [Discord community](https://discord.gg/wallx).
+
+---
+
+<div align="center">
+  Made with ❤️ by the Wallx Team
+</div>

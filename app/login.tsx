@@ -14,7 +14,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebaseConfig';
+import { setDoc, doc } from 'firebase/firestore';
+import { auth, db } from '../lib/firebaseConfig';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -41,6 +42,12 @@ export default function LoginScreen() {
         );
         return;
       }
+
+      // ✅ Save/update user in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        username: user.email?.split('@')[0],
+      }, { merge: true });
 
       setLoading(false);
       Alert.alert('Welcome!', 'Login successful');

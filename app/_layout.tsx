@@ -3,6 +3,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { View, StyleSheet, Text, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { AuthProvider } from '../context/AuthContext';
 
 export default function Layout() {
@@ -15,15 +16,24 @@ export default function Layout() {
             tabBarStyle: {
               backgroundColor: 'transparent',
               borderTopWidth: 0,
-              height: 80,
+              height: 85,
               position: 'absolute',
+              elevation: 0,
             },
             tabBarActiveTintColor: '#fff',
             tabBarInactiveTintColor: '#ffffff80',
             tabBarBackground: () => (
-              <LinearGradient
-                colors={['rgba(15, 32, 39, 0.98)', 'rgba(32, 58, 67, 0.98)', 'rgba(44, 83, 100, 0.98)']}
-                style={{ flex: 1 }}
+              <BlurView
+                intensity={30}
+                tint="dark"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(15, 32, 39, 0.7)',
+                }}
               />
             ),
             tabBarItemStyle: {
@@ -122,7 +132,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 3,
     borderRadius: 2,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#00C6FF',
   },
   aiButton: {
     width: 64,
@@ -132,10 +142,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Platform.OS === 'android' ? 30 : 35,
-    elevation: 6,
+    elevation: 8,
     shadowColor: '#00C6FF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
 });

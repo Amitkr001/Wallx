@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
   Linking,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
@@ -416,10 +417,12 @@ export default function Settings() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f2027" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <LinearGradient colors={['#0f2027', '#203a43', '#2c5364']} style={styles.container}>
-        <Text style={styles.heading}>⚙️ Settings</Text>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Settings</Text>
+        </View>
         <ScrollView contentContainerStyle={styles.content}>
           {initializing ? (
             <View style={styles.loadingContainer}>
@@ -941,50 +944,184 @@ export default function Settings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
+    backgroundColor: '#0A192F',
   },
-  heading: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 20,
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight! + 10,
+    paddingBottom: 15,
+    paddingHorizontal: 16,
+    backgroundColor: '#0A192F',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#E6F1FF',
   },
   content: {
-    paddingBottom: 100,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  loadingText: {
-    color: '#fff',
-    marginTop: 10,
-    opacity: 0.8,
+    padding: 16,
   },
   errorContainer: {
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#ffffff10',
+    backgroundColor: 'rgba(255, 64, 129, 0.1)',
     borderRadius: 12,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FF4081',
   },
   errorText: {
-    color: '#ff6b6b',
-    marginTop: 10,
+    color: '#FF4081',
+    fontSize: 16,
     textAlign: 'center',
+    marginTop: 8,
   },
   retryButton: {
-    marginTop: 10,
-    padding: 10,
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(100, 255, 218, 0.1)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#64FFDA',
   },
   retryText: {
-    color: '#00ffcc',
+    color: '#64FFDA',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  section: {
+    marginBottom: 32,
+    backgroundColor: '#1E2D3D',
+    borderRadius: 16,
+    padding: 16,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  sectionTitle: {
+    color: '#64FFDA',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(100, 255, 218, 0.1)',
+    gap: 16,
+  },
+  settingText: {
+    color: '#E6F1FF',
+    fontSize: 16,
+    flex: 1,
+  },
+  settingValue: {
+    color: '#8892B0',
+    marginRight: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 25, 47, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1E2D3D',
+    padding: 24,
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 400,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  modalTitle: {
+    color: '#64FFDA',
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  modalText: {
+    color: '#8892B0',
+    fontSize: 16,
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: 'rgba(100, 255, 218, 0.1)',
+    borderWidth: 1,
+    borderColor: '#64FFDA',
+  },
+  deleteButton: {
+    backgroundColor: 'rgba(255, 64, 129, 0.1)',
+    borderWidth: 1,
+    borderColor: '#FF4081',
+  },
+  modalButtonText: {
+    color: '#64FFDA',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#8892B0',
+    marginTop: 12,
+    fontSize: 16,
   },
   noDataText: {
-    color: '#fff',
-    marginBottom: 10,
-    opacity: 0.8,
+    color: '#8892B0',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 24,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(100, 255, 218, 0.1)',
+  },
+  selectedLanguage: {
+    backgroundColor: 'rgba(100, 255, 218, 0.1)',
+  },
+  languageText: {
+    color: '#E6F1FF',
+    fontSize: 16,
+  },
+  privacyOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(100, 255, 218, 0.1)',
+  },
+  privacyText: {
+    color: '#E6F1FF',
+    fontSize: 16,
+    flex: 1,
   },
   userCard: {
     backgroundColor: '#ffffff10',
@@ -1018,9 +1155,6 @@ const styles = StyleSheet.create({
     minWidth: 80,
     alignItems: 'center',
   },
-  cancelButton: {
-    backgroundColor: '#ffffff20',
-  },
   saveButton: {
     backgroundColor: '#00ffcc',
   },
@@ -1037,104 +1171,6 @@ const styles = StyleSheet.create({
   editProfileText: {
     color: '#00ffcc',
     fontSize: 14,
-  },
-  section: {
-    backgroundColor: '#ffffff10',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ffffff10',
-    gap: 16,
-  },
-  settingText: {
-    color: '#fff',
-    fontSize: 16,
-    flex: 1,
-  },
-  settingValue: {
-    color: '#ffffff80',
-    marginRight: 8,
-  },
-  languageOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ffffff20',
-  },
-  selectedLanguage: {
-    backgroundColor: '#ffffff10',
-  },
-  languageText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  privacyOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ffffff20',
-  },
-  privacyText: {
-    color: '#fff',
-    fontSize: 16,
-    flex: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#1a2a32',
-    padding: 20,
-    borderRadius: 12,
-    width: '80%',
-  },
-  modalTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  modalText: {
-    color: '#fff',
-    marginBottom: 20,
-    opacity: 0.8,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-  },
-  modalButton: {
-    padding: 10,
-    borderRadius: 6,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  deleteButton: {
-    backgroundColor: '#ff6b6b',
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontWeight: '600',
   },
   pairedUsersContainer: {
     backgroundColor: '#ffffff10',

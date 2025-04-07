@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList, Image,
   Dimensions, StyleSheet, StatusBar, Keyboard, TouchableWithoutFeedback,
-  ActivityIndicator, ScrollView, Platform
+  ActivityIndicator, ScrollView, Platform, Animated
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import { useRouter, useLocalSearchParams } from 'expo-router'; // ✅ NEW
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 
 const ACCESS_KEY = 'FdYuWIiLfuqafC3kBGEHlysxTUO02U6y0KMmd9h7Be0';
 const SEARCH_API = 'https://api.unsplash.com/search/photos';
@@ -24,7 +25,7 @@ const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0
 
 const Home = () => {
   const router = useRouter();
-  const { category } = useLocalSearchParams(); // ✅ NEW
+  const { category } = useLocalSearchParams();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [wallpapers, setWallpapers] = useState([]);
@@ -45,12 +46,10 @@ const Home = () => {
     }
   };
 
-  // 🔁 Fetch on first load
   useEffect(() => {
     fetchWallpapers();
   }, []);
 
-  // ✅ Fetch when category is passed via router
   useEffect(() => {
     if (category) {
       setSearchQuery(String(category));
@@ -80,7 +79,7 @@ const Home = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <LinearGradient
-        colors={['#0f2027', '#203a43', '#2c5364']}
+        colors={['#0A192F', '#112240', '#1D3461']}
         style={styles.container}
       >
         <StatusBar barStyle="light-content" />
@@ -92,24 +91,33 @@ const Home = () => {
           </View>
 
           {/* Search */}
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#ccc" />
+          <BlurView intensity={20} tint="dark" style={styles.searchBar}>
+            <Ionicons name="search" size={20} color="#64FFDA" />
             <TextInput
               style={styles.input}
               placeholder="Search For Wallpapers"
-              placeholderTextColor="#ccc"
+              placeholderTextColor="#8892B0"
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}
             />
-          </View>
+          </BlurView>
 
           {/* AI Banner */}
           <TouchableOpacity onPress={generateWithAI} style={styles.aiBanner}>
-            <Image
-              source={require('../assets/images/ai-banner.png')}
-              style={styles.bannerImage}
-            />
+            <LinearGradient
+              colors={['#00C6FF', '#0072FF']}
+              style={styles.bannerGradient}
+            >
+              <Image
+                source={require('../assets/images/ai-banner.png')}
+                style={styles.bannerImage}
+              />
+              <View style={styles.bannerOverlay}>
+                <Text style={styles.bannerText}>Generate Wallpapers with AI</Text>
+                <Text style={styles.bannerSubText}>Create unique wallpapers instantly</Text>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Popular Categories */}
@@ -134,7 +142,7 @@ const Home = () => {
 
           {/* Wallpapers */}
           {loading ? (
-            <ActivityIndicator size="large" color="#fff" style={{ marginTop: 50 }} />
+            <ActivityIndicator size="large" color="#64FFDA" style={{ marginTop: 50 }} />
           ) : (
             <FlatList
               data={wallpapers}
@@ -149,6 +157,14 @@ const Home = () => {
                   onPress={() => handleWallpaperPress(item.urls.full)}
                 >
                   <Image source={{ uri: item.urls.small }} style={styles.wallpaperImage} />
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.7)']}
+                    style={styles.wallpaperOverlay}
+                  >
+                    <Text style={styles.wallpaperTitle} numberOfLines={1}>
+                      {item.alt_description || 'Wallpaper'}
+                    </Text>
+                  </LinearGradient>
                 </TouchableOpacity>
               )}
             />
@@ -160,7 +176,6 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
-  // ... [Same styles as before]
   container: {
     flex: 1,
     paddingTop: statusBarHeight + 8,
@@ -173,76 +188,129 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#64FFDA',
     letterSpacing: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
-    textShadowOffset: { width: 1, height: 2 },
+    textShadowColor: 'rgba(100, 255, 218, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
   searchBar: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
+    backgroundColor: 'rgba(10, 25, 47, 0.7)',
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    height: 44,
+    paddingHorizontal: 16,
+    height: 50,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(100, 255, 218, 0.1)',
   },
   input: {
-    color: '#fff',
-    marginLeft: 10,
+    color: '#E6F1FF',
+    marginLeft: 12,
     flex: 1,
     fontSize: 16,
   },
   aiBanner: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     marginBottom: 20,
+    elevation: 8,
+    shadowColor: '#00C6FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  bannerGradient: {
+    width: '100%',
+    height: 180,
+    position: 'relative',
   },
   bannerImage: {
     width: '100%',
-    height: 180,
-    resizeMode: 'cover',
-    borderRadius: 20,
+    height: '100%',
+    opacity: 0.8,
+  },
+  bannerOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+  },
+  bannerText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  bannerSubText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
   },
   categoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
   },
   categoryTitle: {
-    color: '#fff',
-    fontSize: 18,
+    color: '#E6F1FF',
+    fontSize: 20,
     fontWeight: '700',
   },
   seeMore: {
-    color: '#ccc',
+    color: '#64FFDA',
     fontSize: 14,
+    fontWeight: '600',
   },
   categoryList: {
     marginVertical: 12,
   },
   categoryCard: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 24,
-    marginRight: 10,
+    marginRight: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   categoryText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize: 15,
   },
   wallpaperCard: {
     width: (screenWidth - 48) / 2,
     height: 300,
     marginBottom: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: '#112240',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   wallpaperImage: {
     width: '100%',
     height: '100%',
+  },
+  wallpaperOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
+  },
+  wallpaperTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

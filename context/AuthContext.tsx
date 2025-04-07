@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { auth } from '../lib/firebaseConfig';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebaseConfig';
 
 type AuthContextType = {
   user: User | null;
@@ -19,10 +21,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('👀 Firebase Auth changed:', firebaseUser);
+      
+      if (firebaseUser) {
+        // Create or update user document in Firestore
+        const userRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (!userDoc.exists()) {
+          // Create new user document
+          await setDoc(userRef, {
+            email: firebaseUser.email,
+            username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+          });
+          console.log('✅ Created new user document');
+        } else {
+          // Update last login
+          await setDoc(userRef, {
+            lastLogin: new Date().toISOString(),
+          }, { merge: true });
+          console.log('✅ Updated user document');
+        }
+      }
+      
       setUser(firebaseUser ?? null);
-      setInitializing(false); // ✅ Firebase is done checking
+      setInitializing(false);
     });
 
     return unsubscribe;

@@ -8,6 +8,7 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
@@ -18,40 +19,54 @@ import { db } from '../lib/firebaseConfig';
 
 export default function Settings() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, initializing } = useAuth();
   const [userData, setUserData] = useState<{ username?: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUserData = async () => {
     if (!user || !user.uid) {
-      setLoading(false); // Avoid infinite loading
+      setLoading(false);
+      setUserData(null);
       return;
     }
 
     setLoading(true);
+    setError(null);
     try {
       const userRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(userRef);
       if (docSnap.exists()) {
         setUserData(docSnap.data());
+        console.log('✅ Fetched user data:', docSnap.data());
       } else {
-        console.warn('User doc does not exist');
-        setUserData(null);
+        setError('User profile not found');
+        console.warn('❌ User doc does not exist');
       }
     } catch (err) {
-      console.error('Error fetching user data:', err);
+      setError('Failed to fetch user data');
+      console.error('❌ Error fetching user data:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUserData();
-  }, [user]); // <- make sure this triggers when user changes
+    if (!initializing) {
+      fetchUserData();
+    }
+  }, [user, initializing]);
 
   const handleAuthAction = () => {
     if (user) {
-      logout();
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Logout', onPress: logout, style: 'destructive' },
+        ]
+      );
     } else {
       router.push('/login');
     }
@@ -63,15 +78,31 @@ export default function Settings() {
       <LinearGradient colors={['#0f2027', '#203a43', '#2c5364']} style={styles.container}>
         <Text style={styles.heading}>⚙️ Settings</Text>
         <ScrollView contentContainerStyle={styles.content}>
-          {loading ? (
-            <ActivityIndicator color="#fff" size="large" />
+          {initializing ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color="#fff" size="large" />
+              <Text style={styles.loadingText}>Initializing...</Text>
+            </View>
+          ) : loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color="#fff" size="large" />
+              <Text style={styles.loadingText}>Loading user data...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <FontAwesome name="exclamation-circle" size={24} color="#ff6b6b" />
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity onPress={fetchUserData} style={styles.retryButton}>
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
           ) : userData ? (
             <View style={styles.userCard}>
               <Text style={styles.userText}>👤 {userData.username}</Text>
               <Text style={styles.userText}>📧 {userData.email}</Text>
             </View>
           ) : (
-            <Text style={{ color: '#fff', marginBottom: 10 }}>No user data found.</Text>
+            <Text style={styles.noDataText}>No user data found.</Text>
           )}
 
           <TouchableOpacity onPress={fetchUserData} style={styles.settingItem}>
@@ -123,6 +154,39 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 100,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    color: '#fff',
+    marginTop: 10,
+    opacity: 0.8,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#ffffff10',
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#ff6b6b',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 10,
+    padding: 10,
+  },
+  retryText: {
+    color: '#00ffcc',
+  },
+  noDataText: {
+    color: '#fff',
+    marginBottom: 10,
+    opacity: 0.8,
   },
   settingItem: {
     flexDirection: 'row',

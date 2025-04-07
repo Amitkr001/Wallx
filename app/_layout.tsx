@@ -100,8 +100,9 @@ export default function Layout() {
         />
 
         {/* Hidden Screens */}
-        {/* <Tabs.Screen name="login" options={{ href: null }} /> */}
+        <Tabs.Screen name="login" options={{ href: null }} />
         <Tabs.Screen name="wallpaper" options={{ href: null }} />
+        <Tabs.Screen name="register" options={{ href: null }} />
       </Tabs>
     </View>
   );

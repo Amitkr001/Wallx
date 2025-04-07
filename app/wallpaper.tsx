@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, Image, StyleSheet, TouchableOpacity,
   Dimensions, StatusBar, Platform, Share, ActivityIndicator,
-  ScrollView, Alert, Linking, Modal
+  ScrollView, Alert, Linking, Modal, RefreshControl
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -16,6 +16,16 @@ const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 20;
 
+const ACCESS_KEY = 'FdYuWIiLfuqafC3kBGEHlysxTUO02U6y0KMmd9h7Be0';
+const API_URL = 'https://api.unsplash.com/photos';
+
+interface Wallpaper {
+  id: string;
+  url: string;
+  thumbnail: string;
+  title: string;
+}
+
 const WallpaperScreen = () => {
   const router = useRouter();
   const { image, description } = useLocalSearchParams();
@@ -23,6 +33,19 @@ const WallpaperScreen = () => {
   const [saved, setSaved] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [wallpapers, setWallpapers] = useState<Wallpaper[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<'home' | 'favorites'>('home');
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showBottomBar, setShowBottomBar] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     checkIfFavorite();
@@ -196,6 +219,56 @@ const WallpaperScreen = () => {
       setLoading(false);
     }
   };
+
+  const fetchWallpapers = async (pageNum: number) => {
+    try {
+      setLoading(true);
+      // Generate a random orientation and query to ensure new images
+      const orientations = ['landscape', 'portrait', 'squarish'];
+      const randomOrientation = orientations[Math.floor(Math.random() * orientations.length)];
+      const randomQuery = Math.random().toString(36).substring(7);
+      
+      const response = await fetch(
+        `${API_URL}/random?count=20&orientation=${randomOrientation}&query=${randomQuery}&collections=1053828,1053829,1053830`, 
+        {
+          headers: {
+            'Authorization': `Client-ID ${ACCESS_KEY}`
+          }
+        }
+      );
+      
+      const data = await response.json();
+      if (data.length === 0) {
+        setHasMore(false);
+      } else {
+        const newWallpapers = data.map((photo: any) => ({
+          id: photo.id,
+          url: photo.urls.full,
+          thumbnail: photo.urls.thumb,
+          title: photo.alt_description || 'Wallpaper'
+        }));
+        setWallpapers(prev => pageNum === 1 ? newWallpapers : [...prev, ...newWallpapers]);
+      }
+    } catch (err) {
+      setError('Failed to fetch wallpapers');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    setWallpapers([]);
+    await fetchWallpapers(1);
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    fetchWallpapers(1);
+  }, []);
 
   return (
     <View style={styles.container}>

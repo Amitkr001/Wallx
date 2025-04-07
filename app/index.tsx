@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList, Image,
   Dimensions, StyleSheet, StatusBar, Keyboard, TouchableWithoutFeedback,
-  ActivityIndicator, ScrollView, Platform, Animated
+  ActivityIndicator, ScrollView, Platform, Animated, RefreshControl
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
@@ -30,12 +30,19 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [wallpapers, setWallpapers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Animation values
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const scaleAnim = React.useRef(new Animated.Value(0.5)).current;
+  const slideAnim = React.useRef(new Animated.Value(100)).current;
 
   const fetchWallpapers = async (query = 'trending') => {
     try {
       setLoading(true);
+      const randomPage = Math.floor(Math.random() * 50) + 1;
       const response = await axios.get(SEARCH_API, {
-        params: { query, per_page: 20 },
+        params: { query, per_page: 20, page: randomPage },
         headers: { Authorization: `Client-ID ${ACCESS_KEY}` },
       });
       setWallpapers(response.data.results);
@@ -45,6 +52,35 @@ const Home = () => {
       setLoading(false);
     }
   };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchWallpapers(searchQuery || 'trending');
+    setRefreshing(false);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    // Start animations when component mounts
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   useEffect(() => {
     fetchWallpapers();
@@ -65,6 +101,7 @@ const Home = () => {
   };
 
   const handleCategoryPress = (cat: string) => {
+    setSearchQuery(cat);
     fetchWallpapers(cat);
   };
 
@@ -84,11 +121,78 @@ const Home = () => {
       >
         <StatusBar barStyle="light-content" />
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#64FFDA"
+              titleColor="#64FFDA"
+            />
+          }
+        >
           {/* App Name */}
-          <View style={styles.appHeader}>
-            <Text style={styles.appName}>🌟 Wallx</Text>
-          </View>
+          <Animated.View 
+            style={[
+              styles.appHeader,
+              {
+                opacity: fadeAnim,
+                transform: [
+                  { scale: scaleAnim },
+                  { translateY: slideAnim }
+                ]
+              }
+            ]}
+          >
+            <View style={styles.appNameWrapper}>
+              <Animated.Text 
+                style={[
+                  styles.appName,
+                  {
+                    opacity: fadeAnim,
+                    transform: [
+                      { scale: scaleAnim }
+                    ]
+                  }
+                ]}
+              >
+                Wallx
+              </Animated.Text>
+              <Animated.View 
+                style={[
+                  styles.gradientLine,
+                  {
+                    transform: [
+                      {
+                        scaleX: fadeAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 1]
+                        })
+                      }
+                    ]
+                  }
+                ]} 
+              />
+            </View>
+            <Animated.Text 
+              style={[
+                styles.appSubtitle,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    { translateY: slideAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: [0, 20]
+                      })
+                    }
+                  ]
+                }
+              ]}
+            >
+              Your Premium Wallpaper Collection
+            </Animated.Text>
+          </Animated.View>
 
           {/* Search */}
           <BlurView intensity={20} tint="dark" style={styles.searchBar}>
@@ -183,16 +287,35 @@ const styles = StyleSheet.create({
   },
   appHeader: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 25,
+    marginTop: 15,
+  },
+  appNameWrapper: {
+    alignItems: 'center',
+    marginBottom: 8,
   },
   appName: {
-    fontSize: 36,
-    fontWeight: 'bold',
+    fontSize: 48,
+    fontWeight: '800',
+    letterSpacing: 1,
     color: '#64FFDA',
-    letterSpacing: 2,
     textShadowColor: 'rgba(100, 255, 218, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
+  },
+  gradientLine: {
+    height: 4,
+    width: 120,
+    borderRadius: 2,
+    marginTop: 8,
+    backgroundColor: '#64FFDA',
+  },
+  appSubtitle: {
+    fontSize: 14,
+    color: '#8892B0',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginTop: 4,
   },
   searchBar: {
     backgroundColor: 'rgba(10, 25, 47, 0.7)',

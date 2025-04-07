@@ -22,27 +22,32 @@ export default function Settings() {
   const [userData, setUserData] = useState<{ username?: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (user?.uid) {
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          const docSnap = await getDoc(userRef);
-          if (docSnap.exists()) {
-            setUserData(docSnap.data());
-          }
-        } catch (err) {
-          console.error('Failed to fetch user data:', err);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    };
+  const fetchUserData = async () => {
+    if (!user || !user.uid) {
+      setLoading(false); // Avoid infinite loading
+      return;
+    }
 
+    setLoading(true);
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        setUserData(docSnap.data());
+      } else {
+        console.warn('User doc does not exist');
+        setUserData(null);
+      }
+    } catch (err) {
+      console.error('Error fetching user data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserData();
-  }, [user]);
+  }, [user]); // <- make sure this triggers when user changes
 
   const handleAuthAction = () => {
     if (user) {
@@ -65,9 +70,15 @@ export default function Settings() {
               <Text style={styles.userText}>👤 {userData.username}</Text>
               <Text style={styles.userText}>📧 {userData.email}</Text>
             </View>
-          ) : null}
+          ) : (
+            <Text style={{ color: '#fff', marginBottom: 10 }}>No user data found.</Text>
+          )}
 
-          {/* Your other settings UI */}
+          <TouchableOpacity onPress={fetchUserData} style={styles.settingItem}>
+            <FontAwesome name="refresh" size={20} color="#fff" />
+            <Text style={styles.settingText}>Refresh User Data</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.settingItem}>
             <FontAwesome name="bell" size={20} color="#fff" />
             <Text style={styles.settingText}>Notifications</Text>
@@ -79,7 +90,6 @@ export default function Settings() {
             <Switch value={true} />
           </TouchableOpacity>
 
-          {/* Auth Button */}
           <TouchableOpacity
             onPress={handleAuthAction}
             style={[styles.settingItem, { borderTopWidth: 1, borderTopColor: '#ffffff20' }]}

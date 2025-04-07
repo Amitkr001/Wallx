@@ -21,47 +21,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
+    console.log('🔄 AuthProvider: Setting up auth listener');
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('👀 Firebase Auth changed:', firebaseUser);
+      console.log('👀 Auth state changed:', firebaseUser ? 'User logged in' : 'No user');
       
       if (firebaseUser) {
-        // Create or update user document in Firestore
-        const userRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userRef);
-        
-        if (!userDoc.exists()) {
-          // Create new user document
-          await setDoc(userRef, {
-            email: firebaseUser.email,
-            username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString(),
-          });
-          console.log('✅ Created new user document');
-        } else {
-          // Update last login
-          await setDoc(userRef, {
-            lastLogin: new Date().toISOString(),
-          }, { merge: true });
-          console.log('✅ Updated user document');
+        console.log('📝 Creating/updating user document...');
+        try {
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userRef);
+          
+          if (!userDoc.exists()) {
+            console.log('📄 Creating new user document');
+            await setDoc(userRef, {
+              email: firebaseUser.email,
+              username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+              createdAt: new Date().toISOString(),
+              lastLogin: new Date().toISOString(),
+            });
+          } else {
+            console.log('📄 Updating existing user document');
+            await setDoc(userRef, {
+              lastLogin: new Date().toISOString(),
+            }, { merge: true });
+          }
+        } catch (error) {
+          console.error('❌ Error handling user document:', error);
         }
       }
       
-      setUser(firebaseUser ?? null);
+      setUser(firebaseUser);
       setInitializing(false);
+      console.log('✅ Auth state updated, initializing set to false');
     });
 
-    return unsubscribe;
+    return () => {
+      console.log('🧹 Cleaning up auth listener');
+      unsubscribe();
+    };
   }, []);
 
   const logout = async () => {
     try {
+      console.log('👋 Logging out user...');
       await signOut(auth);
-      console.log('👋 User signed out');
+      console.log('✅ User logged out successfully');
     } catch (error) {
-      console.error('❌ Sign out error:', error);
+      console.error('❌ Error during logout:', error);
     }
   };
+
+  console.log('🔄 AuthProvider render:', { user, initializing });
 
   return (
     <AuthContext.Provider value={{ user, logout, initializing }}>
@@ -70,4 +81,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

@@ -17,15 +17,26 @@ import { useAuth } from '../context/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebaseConfig';
 
+type UserData = {
+  username?: string;
+  email?: string;
+  lastLogin?: string;
+  createdAt?: string;
+};
+
 export default function Settings() {
   const router = useRouter();
   const { user, logout, initializing } = useAuth();
-  const [userData, setUserData] = useState<{ username?: string; email?: string } | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserData = async () => {
+    console.log('🔄 Starting to fetch user data...');
+    console.log('👤 Current user:', user);
+    
     if (!user || !user.uid) {
+      console.log('❌ No user or user.uid found');
       setLoading(false);
       setUserData(null);
       return;
@@ -34,24 +45,34 @@ export default function Settings() {
     setLoading(true);
     setError(null);
     try {
+      console.log('📡 Fetching from Firestore...');
       const userRef = doc(db, 'users', user.uid);
+      console.log('🔍 User reference:', userRef.path);
+      
       const docSnap = await getDoc(userRef);
+      console.log('📄 Document snapshot:', docSnap.exists() ? 'exists' : 'does not exist');
+      
       if (docSnap.exists()) {
-        setUserData(docSnap.data());
-        console.log('✅ Fetched user data:', docSnap.data());
+        const data = docSnap.data();
+        console.log('📊 User data:', data);
+        setUserData(data);
       } else {
         setError('User profile not found');
         console.warn('❌ User doc does not exist');
       }
     } catch (err) {
-      setError('Failed to fetch user data');
       console.error('❌ Error fetching user data:', err);
+      setError('Failed to fetch user data');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('🔄 useEffect triggered');
+    console.log('⚙️ Initializing:', initializing);
+    console.log('👤 User state:', user);
+    
     if (!initializing) {
       fetchUserData();
     }
@@ -98,8 +119,9 @@ export default function Settings() {
             </View>
           ) : userData ? (
             <View style={styles.userCard}>
-              <Text style={styles.userText}>👤 {userData.username}</Text>
-              <Text style={styles.userText}>📧 {userData.email}</Text>
+              <Text style={styles.userText}>👤 {userData.username || 'No username set'}</Text>
+              <Text style={styles.userText}>📧 {userData.email || 'No email set'}</Text>
+              <Text style={styles.userText}>🕒 Last login: {new Date(userData.lastLogin).toLocaleString()}</Text>
             </View>
           ) : (
             <Text style={styles.noDataText}>No user data found.</Text>
